@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🧏 ASL Translator Dashboard</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f9fafc;
+      color: #333;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 { color: #007bff; }
+    #messages {
+      max-width: 700px;
+      margin: 30px auto;
+      text-align: left;
+    }
+    .message {
+      background: white;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .asl-video {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    video {
+      width: 160px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>ASL Live Translator Dashboard</h1>
+  <p>Receiving texts & translating to ASL (if available)</p>
+
+  <div id="messages"></div>
+
+  <script>
+    async function fetchMessages() {
+      const response = await fetch("/get_messages/");
+      const data = await response.json();
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        const div = document.createElement("div");
+        div.classList.add("message");
+        div.innerHTML = `<b>Text:</b> ${msg.text}`;
+
+        if (msg.asl.length > 0) {
+          const videoContainer = document.createElement("div");
+          videoContainer.classList.add("asl-video");
+          msg.asl.forEach(a => {
+            const vid = document.createElement("video");
+            vid.src = a.video;
+            vid.controls = true;
+            vid.autoplay = false;
+            videoContainer.appendChild(vid);
+          });
+          div.appendChild(videoContainer);
+        } else {
+          div.innerHTML += "<br><i>No ASL video found for this text</i>";
+        }
+
+        messagesDiv.prepend(div); // newest on top
+      });
+    }
+
+    // Fetch messages every 3 seconds
+    setInterval(fetchMessages, 3000);
+    fetchMessages();
+  </script>
+</body>
+</html>
